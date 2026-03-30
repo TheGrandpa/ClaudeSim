@@ -189,6 +189,11 @@ def _color_from_lineage(lineage_id: int) -> Tuple[int, int, int]:
     return (int(r * 255), int(g * 255), int(b * 255))
 
 
+def get_next_id() -> int:
+    """Return the current value of the creature ID counter (for serialization)."""
+    return _next_id
+
+
 def reset_id_counter(start: int = 0) -> None:
     """Used when loading a saved simulation."""
     global _next_id

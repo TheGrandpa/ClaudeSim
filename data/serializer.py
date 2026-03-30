@@ -20,7 +20,7 @@ from typing import Optional, TYPE_CHECKING
 
 from config import SimConfig, CONFIG
 from core.genome import INNOVATION_REGISTRY, Genome
-from core.creature import Creature, reset_id_counter, _next_id
+from core.creature import Creature, reset_id_counter, get_next_id
 
 if TYPE_CHECKING:
     from core.world import World
@@ -59,7 +59,7 @@ class Serializer:
             "total_deaths": loop.total_deaths,
             "innovation_registry": INNOVATION_REGISTRY.to_dict(),
             "speciator": speciator.to_dict(),
-            "next_creature_id": _next_id,
+            "next_creature_id": get_next_id(),
         }
         self._write_json(os.path.join(save_path, "meta.json"), meta)
 

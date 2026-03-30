@@ -28,9 +28,11 @@ from core.population import Population
 from core.world import World
 from data.serializer import Serializer
 from data.stats import StatsCollector
-from visualization.event_log import get_log, MILESTONE
+from visualization.event_log import get_log, MILESTONE, BIRTH, INJECT
 from visualization.hud import SPEED_PRESETS
+from evolution.mutation import mutate
 from evolution.speciation import Speciator
+from core.naming import inherit_name
 from simulation.loop import SimulationLoop, _next_lineage_id
 from visualization.renderer import Renderer
 
@@ -219,26 +221,24 @@ def main() -> None:
             renderer.detail.spawn_requested = False
             src = population.get_by_id(renderer.detail.creature_id)
             if src and population.count < CONFIG.max_population:
-                from core.genome import INNOVATION_REGISTRY
-                from evolution.mutation import mutate
                 child_genome = src.genome.copy()
-                mutate(child_genome, CONFIG, INNOVATION_REGISTRY)
-                from core.naming import inherit_name
-                child_name = inherit_name(src.name, src.name,
-                                          CONFIG.syllable_mutation_rate,
-                                          min_syllables=CONFIG.name_min_syllables,
-                                          max_syllables=CONFIG.name_max_syllables)
-                child_pos  = population.random_spawn_position()
-                from core.creature import Creature
+                mut = mutate(child_genome, CONFIG, INNOVATION_REGISTRY)
+                child_name = inherit_name(
+                    src.name, src.name,
+                    mutation_rate=CONFIG.syllable_mutation_rate,
+                    add_syllable=mut["structural"],
+                    min_syllables=CONFIG.name_min_syllables,
+                    max_syllables=CONFIG.name_max_syllables,
+                )
+                child_pos = population.random_spawn_position()
                 child = Creature(child_genome, child_name, child_pos, CONFIG.initial_energy)
                 child.parent_ids = (src.id, src.id)
                 population.add(child)
                 lineage.register_birth(child, loop.tick_count)
                 loop._total_births += 1
-                from visualization.event_log import push as log_event, BIRTH
-                log_event(BIRTH,
-                          f"Spawned copy of {src.name.short()} → {child.name.short()}",
-                          loop.tick_count)
+                get_log().push(BIRTH,
+                               f"Spawned copy of {src.name.short()} → {child.name.short()}",
+                               loop.tick_count)
 
         # ── Load creature request (from picker modal) ─────────────────────────
         if renderer.picker.load_requested:
@@ -249,8 +249,7 @@ def main() -> None:
                 creature.pos = population.random_spawn_position()
                 population.add(creature)
                 lineage.register_birth(creature, loop.tick_count)
-                from visualization.event_log import push as log_event, INJECT
-                log_event(INJECT, f"Loaded {creature.name.short()} from file", loop.tick_count)
+                get_log().push(INJECT, f"Loaded {creature.name.short()} from file", loop.tick_count)
 
         # ── Simulation tick(s) ────────────────────────────────────────────────
         if not paused:
