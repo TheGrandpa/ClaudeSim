@@ -119,10 +119,12 @@ class Renderer:
     # ── Creatures ─────────────────────────────────────────────────────────────
 
     def _draw_creatures(self, population: "Population") -> None:
-        cr = self.camera.world_to_screen_radius(self.cfg.creature_radius)
-        cr = max(3, cr)
+        base_cr = self.camera.world_to_screen_radius(self.cfg.creature_radius)
 
         for creature in population.creatures:
+            # Scale rendered radius by the creature's size gene
+            cr = max(3, int(base_cr * creature.genome.behavior.size))
+
             sx, sy = self.camera.world_to_screen(
                 float(creature.pos[0]), float(creature.pos[1])
             )
@@ -152,7 +154,7 @@ class Renderer:
     def _draw_creature_body(self, creature: "Creature", sx: int, sy: int, cr: int) -> None:
         app = creature.genome.appearance
         angle = creature.angle
-        e_ratio = min(creature.energy / self.cfg.max_energy, 1.0)
+        e_ratio = min(creature.energy / creature.max_energy, 1.0)
 
         primary  = app.primary_rgb(e_ratio)
         belly    = app.belly_rgb(e_ratio)

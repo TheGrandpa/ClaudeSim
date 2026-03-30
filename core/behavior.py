@@ -49,6 +49,11 @@ class BehaviorGene:
     # Scales energy gained from each source continuously.
     carnivore_bias:       float = 0.05
 
+    # Body size multiplier (0.3–2.0, default 1.0).
+    # Affects max energy capacity, move speed, metabolic cost, attack damage,
+    # damage resistance, and visual size.
+    size:                 float = 1.0
+
     # ── Serialization ─────────────────────────────────────────────────────────
 
     def to_dict(self) -> dict:
@@ -61,6 +66,7 @@ class BehaviorGene:
             "food_priority":       self.food_priority,
             "sexual_bias":         self.sexual_bias,
             "carnivore_bias":      self.carnivore_bias,
+            "size":                self.size,
         }
 
     @classmethod
@@ -74,6 +80,7 @@ class BehaviorGene:
             food_priority       = d.get("food_priority",        1.0),
             sexual_bias         = d.get("sexual_bias",          0.8),
             carnivore_bias      = d.get("carnivore_bias",       0.05),
+            size                = d.get("size",                 1.0),
         )
 
     def copy(self) -> "BehaviorGene":
@@ -92,6 +99,7 @@ def random_behavior() -> BehaviorGene:
         food_priority       = random.uniform(0.1, 3.0),
         sexual_bias         = random.uniform(0.0, 1.0),
         carnivore_bias      = random.uniform(0.0, 0.3),  # start mostly herbivorous
+        size                = random.uniform(0.5, 1.5),  # start near mid-range
     )
 
 
@@ -111,6 +119,7 @@ def crossover_behavior(a: BehaviorGene, b: BehaviorGene) -> BehaviorGene:
         food_priority       = pick(a.food_priority,       b.food_priority),
         sexual_bias         = pick(a.sexual_bias,         b.sexual_bias),
         carnivore_bias      = pick(a.carnivore_bias,      b.carnivore_bias),
+        size                = pick(a.size,                b.size),
     )
 
 
@@ -134,3 +143,4 @@ def mutate_behavior(beh: BehaviorGene, rate: float = 0.3) -> None:
     beh.food_priority       = perturb(beh.food_priority,        0.1,  3.0,   0.08)
     beh.sexual_bias         = perturb(beh.sexual_bias,          0.0,  1.0,   0.08)
     beh.carnivore_bias      = perturb(beh.carnivore_bias,       0.0,  1.0,   0.06)
+    beh.size                = perturb(beh.size,                 0.3,  2.0,   0.05)

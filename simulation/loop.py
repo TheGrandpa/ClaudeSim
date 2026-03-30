@@ -107,10 +107,11 @@ class SimulationLoop:
             extra_cost = self.resolver.resolve(creature, action, self.world, self.population)
 
             # 6. Energy costs
-            nn_cost = creature.brain.weight_count() * self.cfg.nn_cost_per_weight
-            move_cost = movement_energy_cost(creature, self.cfg)
+            # Metabolic base cost scales linearly with size — big bodies cost more to run
+            nn_cost    = creature.brain.weight_count() * self.cfg.nn_cost_per_weight
+            move_cost  = movement_energy_cost(creature, self.cfg)
             total_cost = (
-                self.cfg.metabolic_cost_per_tick
+                self.cfg.metabolic_cost_per_tick * creature.genome.behavior.size
                 + nn_cost
                 + move_cost
                 + extra_cost

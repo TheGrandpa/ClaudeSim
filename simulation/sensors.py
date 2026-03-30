@@ -122,7 +122,7 @@ def build_sensor_vector(
             vec[base + 4] = kin_foe
 
     # ── Hunger direction ──────────────────────────────────────────────────────
-    energy_norm    = min(creature.energy / cfg.max_energy, 1.0)
+    energy_norm    = min(creature.energy / creature.max_energy, 1.0)
     hunger         = 1.0 - energy_norm                      # 0=full, 1=starving
     hunger_strength = hunger * beh.food_priority            # scaled by genetic drive
     if nearest_food_dir is not None:
@@ -132,7 +132,7 @@ def build_sensor_vector(
 
     # ── Self state ────────────────────────────────────────────────────────────
     speed = math.sqrt(float(creature.vel[0] ** 2 + creature.vel[1] ** 2))
-    vec[SELF_OFFSET + 0] = min(speed / cfg.max_speed, 1.0)
+    vec[SELF_OFFSET + 0] = min(speed / creature.effective_max_speed, 1.0)
     vec[SELF_OFFSET + 1] = energy_norm
     vec[SELF_OFFSET + 2] = min(creature.years / 5.0, 1.0)  # saturates at 5 years
     vec[SELF_OFFSET + 3] = math.sin(angle)
@@ -157,16 +157,14 @@ def _cast_ray(
     cos_a = math.cos(angle)
     sin_a = math.sin(angle)
 
-    cr2 = (cfg.creature_radius * 2) ** 2
-
     for s in range(1, steps + 1):
         t = s * step
         # Wrap ray position toroidally — no walls, rays travel through edges
         x = (ox + cos_a * t) % world.width
         y = (oy + sin_a * t) % world.height
 
-        # Creature check
-        nearby_ids = world.get_nearby_creature_ids(x, y, cfg.creature_radius * 2)
+        # Creature check — larger creatures subtend a bigger detection sphere
+        nearby_ids = world.get_nearby_creature_ids(x, y, cfg.creature_radius * 3)
         for cid in nearby_ids:
             if cid == self_id:
                 continue
@@ -174,7 +172,8 @@ def _cast_ray(
             if other is None:
                 continue
             dx, dy = world._wrap_delta(float(other.pos[0]) - x, float(other.pos[1]) - y)
-            if dx * dx + dy * dy < cr2:
+            detect_r = cfg.creature_radius * 2 * other.genome.behavior.size
+            if dx * dx + dy * dy < detect_r * detect_r:
                 dist_norm = 1.0 - t / length
                 return (0.0, 1.0, 0.0, dist_norm)
 

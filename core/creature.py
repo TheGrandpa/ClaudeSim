@@ -99,6 +99,20 @@ class Creature:
     def can_reproduce(self, threshold: float) -> bool:
         return self.energy >= threshold
 
+    # ── Size-derived stats ────────────────────────────────────────────────────
+
+    @property
+    def max_energy(self) -> float:
+        """Energy cap scales with size^1.5 — large creatures are energy tanks."""
+        from config import CONFIG
+        return CONFIG.max_energy * (self.genome.behavior.size ** 1.5)
+
+    @property
+    def effective_max_speed(self) -> float:
+        """Larger creatures move more slowly (size^-0.5)."""
+        from config import CONFIG
+        return CONFIG.max_speed * (self.genome.behavior.size ** -0.5)
+
     # ── Energy ────────────────────────────────────────────────────────────────
 
     def apply_energy_cost(self, delta: float) -> None:

@@ -58,6 +58,8 @@ class SimConfig:
     add_node_rate: float = 0.06
     disable_connection_rate: float = 0.01
     max_hidden_nodes: int = 64
+    allow_recurrent: bool = True           # enable recurrent (back-edge) connections
+    recurrent_connection_rate: float = 0.3 # fraction of add_connection calls that may be recurrent
 
     # ── Speciation ────────────────────────────────────────────────────────────
     species_compatibility_threshold: float = 0.8   # distance to form a new species

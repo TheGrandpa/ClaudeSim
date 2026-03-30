@@ -87,11 +87,16 @@ def add_connection(
         out_id = random.choice(node_ids)
         if in_id == out_id:
             continue
-        # Don't connect output -> input or output -> output (keeps it mostly feedforward)
-        if genome.nodes[in_id].node_type == NodeType.OUTPUT:
-            continue
+        # Inputs are sensor-driven — never use them as connection targets
         if genome.nodes[out_id].node_type == NodeType.INPUT:
             continue
+        # Output nodes as sources create recurrent/feedback connections.
+        # Allow them only when recurrent mode is on and the random roll passes.
+        if genome.nodes[in_id].node_type == NodeType.OUTPUT:
+            if not cfg.allow_recurrent:
+                continue
+            if random.random() > cfg.recurrent_connection_rate:
+                continue
         if (in_id, out_id) in existing:
             continue
 

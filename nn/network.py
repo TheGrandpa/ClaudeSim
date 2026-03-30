@@ -56,7 +56,10 @@ class NeuralNetwork:
     def __init__(self, genome: Genome) -> None:
         self.genome = genome
         self._order: List[int] = []
+        self._order_pos: Dict[int, int] = {}   # node_id -> position in topological order
         self._dirty: bool = True
+        # Activations from the previous tick — used for recurrent connections
+        self._prev_activations: Dict[int, float] = {}
 
     def mark_dirty(self) -> None:
         """Call after any structural mutation to trigger a re-sort on next forward()."""
@@ -106,6 +109,7 @@ class NeuralNetwork:
                 order.append(nid)
 
         self._order = order
+        self._order_pos = {nid: i for i, nid in enumerate(order)}
         self._dirty = False
 
     def forward(self, inputs: np.ndarray) -> np.ndarray:
@@ -135,15 +139,27 @@ class NeuralNetwork:
             if conn.in_node in nodes and conn.out_node in nodes:
                 incoming[conn.out_node].append((conn.in_node, conn.weight))
 
-        # Evaluate in topological order
+        # Evaluate in topological order.
+        # For recurrent connections (in_node comes at or after out_node in the sorted
+        # order — i.e. a back-edge), use the previous tick's activation instead of
+        # the current (not-yet-computed) one.
+        order_pos = self._order_pos
         for nid in self._order:
             if nodes[nid].node_type == NodeType.INPUT:
                 continue  # already loaded
-            raw = sum(
-                activations.get(src, 0.0) * w for src, w in incoming[nid]
-            )
+            my_pos = order_pos.get(nid, 0)
+            raw = 0.0
+            for src, w in incoming[nid]:
+                if order_pos.get(src, 0) >= my_pos:
+                    # Back-edge (recurrent): use value from previous tick
+                    raw += self._prev_activations.get(src, 0.0) * w
+                else:
+                    raw += activations.get(src, 0.0) * w
             act_fn = _ACTIVATIONS.get(nodes[nid].activation, _tanh)
             activations[nid] = float(act_fn(np.array([raw]))[0])
+
+        # Persist activations for the next tick's recurrent reads
+        self._prev_activations = dict(activations)
 
         # Collect outputs in stable order
         output_ids = sorted(

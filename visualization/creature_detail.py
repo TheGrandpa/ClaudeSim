@@ -312,13 +312,14 @@ class CreatureDetailPanel:
         bar_w = PORTRAIT_W - 40
         bar_x = ox + 20
         bar_h = 14
-        e_ratio = min(c.energy / 500.0, 1.0)
+        e_ratio = min(c.energy / c.max_energy, 1.0)
         ec = (int(ENERGY_LO[0] + (ENERGY_HI[0]-ENERGY_LO[0]) * e_ratio),
               int(ENERGY_LO[1] + (ENERGY_HI[1]-ENERGY_LO[1]) * e_ratio),
               int(ENERGY_LO[2] + (ENERGY_HI[2]-ENERGY_LO[2]) * e_ratio))
         pygame.draw.rect(surface, (30, 35, 45), (bar_x, bar_y, bar_w, bar_h), border_radius=4)
         pygame.draw.rect(surface, ec,           (bar_x, bar_y, int(bar_w * e_ratio), bar_h), border_radius=4)
-        self._text(surface, f"Energy {c.energy:.0f}", bar_x, bar_y + bar_h + 4, self._f_small, TEXT_DIM)
+        self._text(surface, f"Energy {c.energy:.0f} / {c.max_energy:.0f}",
+                   bar_x, bar_y + bar_h + 4, self._f_small, TEXT_DIM)
 
         # Parents
         if c.parent_ids:
@@ -368,7 +369,7 @@ class CreatureDetailPanel:
         cy = size // 2
         cr = size * 0.28   # scale to fit
         angle = 0.0        # face right
-        e_ratio = min(creature.energy / 500.0, 1.0)
+        e_ratio = min(creature.energy / creature.max_energy, 1.0)
 
         primary = app.primary_rgb(e_ratio)
         belly   = app.belly_rgb(e_ratio)
@@ -463,7 +464,7 @@ class CreatureDetailPanel:
         age_str = f"{c.years}y {c.age % 5000} ticks" if c.years > 0 else f"{c.age} ticks"
         stats = [
             ("Age",        age_str),
-            ("Energy",     f"{c.energy:.1f} / 500"),
+            ("Energy",     f"{c.energy:.1f} / {c.max_energy:.0f}"),
             ("Speed",      f"{math.sqrt(float(c.vel[0]**2+c.vel[1]**2)):.2f}"),
             ("Species",    f"#{c.species_id}"),
             ("Generation", f"{c.name.generation}"),
@@ -518,6 +519,7 @@ class CreatureDetailPanel:
         beh_stats = [
             ("Diet",     f"{diet_label} ({cb:.2f})"),
             ("Repro",    repro_label),
+            ("Size",     f"{beh.size:.2f}  (max E {c.max_energy:.0f})"),
             ("Ray len",  f"{beh.ray_length:.0f}"),
             ("Eat thr",  f"{beh.eat_threshold:.2f}"),
             ("Atk thr",  f"{beh.attack_threshold:.2f}"),
