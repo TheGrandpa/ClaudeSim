@@ -1,7 +1,7 @@
 """
-Sensors — build the 55-element input vector for a creature's neural network.
+Sensors — build the 58-element input vector for a creature's neural network.
 
-Layout (matches config.neat_input_size = 55):
+Layout (matches config.neat_input_size = 58):
 
   [0:24]   Ray sensors  — 6 rays × 4 values each
                (wall_hit, creature_hit, food_hit, normalized_distance)
@@ -9,17 +9,18 @@ Layout (matches config.neat_input_size = 55):
 
   [24:33]  Nearest 3 food items — 3 × (sin_angle, cos_angle, norm_dist)
 
-  [33:48]  Nearest 3 creatures  — 3 × (sin_angle, cos_angle, norm_dist,
-                                        energy_ratio, kin_foe_signal)
+  [33:51]  Nearest 3 creatures  — 3 × (sin_angle, cos_angle, norm_dist,
+                                        energy_ratio, kin_foe_signal, signal)
                kin_foe_signal: +1.0 = same species (kin)
                                 0.0 = unknown/neutral different species
                                -1..+1 = prior interaction score if any
+               signal: the neighbour's current broadcast signal [0, 1]
 
-  [48:50]  Hunger direction — (sin, cos) toward nearest food,
+  [51:53]  Hunger direction — (sin, cos) toward nearest food,
                scaled by (1 - energy_norm) * food_priority
                Strong when hungry, silent when full.
 
-  [50:55]  Self state — (speed_norm, energy_norm, years_norm,
+  [53:58]  Self state — (speed_norm, energy_norm, years_norm,
                           heading_sin, heading_cos)
                years_norm = min(years / 5, 1.0)  (saturates at 5 years)
 """
@@ -41,16 +42,16 @@ if TYPE_CHECKING:
 
 # ── Layout constants ──────────────────────────────────────────────────────────
 
-SENSOR_SIZE      = 55
+SENSOR_SIZE      = 58
 RAY_COUNT        = 6
 NEAREST_FOOD     = 3
 NEAREST_CREATURE = 3
 
 RAY_OFFSET      = 0        # 6 × 4 = 24
 FOOD_OFFSET     = 24       # 3 × 3 = 9
-CREATURE_OFFSET = 33       # 3 × 5 = 15
-HUNGER_OFFSET   = 48       # 2
-SELF_OFFSET     = 50       # 5
+CREATURE_OFFSET = 33       # 3 × 6 = 18  (added signal as 6th value)
+HUNGER_OFFSET   = 51       # 2
+SELF_OFFSET     = 53       # 5
 
 
 def build_sensor_vector(
@@ -101,7 +102,7 @@ def build_sensor_vector(
         creature.id, cx, cy, nearby_ids, population, cfg.sense_radius, world
     )
     for i in range(NEAREST_CREATURE):
-        base = CREATURE_OFFSET + i * 5
+        base = CREATURE_OFFSET + i * 6
         if i < len(nearby_creatures):
             other, dist = nearby_creatures[i]
             dx, dy = world._wrap_delta(float(other.pos[0]) - cx, float(other.pos[1]) - cy)
@@ -120,6 +121,7 @@ def build_sensor_vector(
             vec[base + 2] = 1.0 - min(dist / cfg.sense_radius, 1.0)
             vec[base + 3] = energy_ratio
             vec[base + 4] = kin_foe
+            vec[base + 5] = other.signal   # broadcast signal from neighbour [0, 1]
 
     # ── Hunger direction ──────────────────────────────────────────────────────
     energy_norm    = min(creature.energy / creature.max_energy, 1.0)

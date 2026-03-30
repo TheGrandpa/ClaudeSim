@@ -48,8 +48,8 @@ class SimConfig:
     velocity_damping: float = 0.85
 
     # ── NEAT ──────────────────────────────────────────────────────────────────
-    neat_input_size: int = 55   # 24 rays + 9 food + 15 creatures + 2 hunger-dir + 5 self
-    neat_output_size: int = 6
+    neat_input_size: int = 58   # 24 rays + 9 food + 18 creatures(×6) + 2 hunger-dir + 5 self
+    neat_output_size: int = 7   # thrust, turn, eat, reproduce, attack, flee, signal
     weight_init_range: float = 2.0
     weight_perturb_rate: float = 0.8        # probability each weight is perturbed
     weight_perturb_strength: float = 0.3    # gaussian std dev
@@ -94,6 +94,7 @@ class SimConfig:
     show_trails: bool = True
     trail_length: int = 20
     show_rays: bool = True
+    show_signals: bool = False       # draw broadcast-signal aura around creatures
     show_sense_radius: bool = False
 
     # ── Camera ────────────────────────────────────────────────────────────────

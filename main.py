@@ -128,6 +128,9 @@ def main() -> None:
                 elif event.key == pygame.K_r:
                     CONFIG.show_rays = not CONFIG.show_rays
 
+                elif event.key == pygame.K_g:
+                    CONFIG.show_signals = not CONFIG.show_signals
+
                 elif event.key == pygame.K_RIGHTBRACKET:
                     idx = SPEED_PRESETS.index(CONFIG.sim_speed) if CONFIG.sim_speed in SPEED_PRESETS else 0
                     CONFIG.sim_speed = SPEED_PRESETS[min(idx + 1, len(SPEED_PRESETS) - 1)]

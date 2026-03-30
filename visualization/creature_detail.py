@@ -465,6 +465,7 @@ class CreatureDetailPanel:
         stats = [
             ("Age",        age_str),
             ("Energy",     f"{c.energy:.1f} / {c.max_energy:.0f}"),
+            ("Signal",     f"{c.signal:.2f}"),
             ("Speed",      f"{math.sqrt(float(c.vel[0]**2+c.vel[1]**2)):.2f}"),
             ("Species",    f"#{c.species_id}"),
             ("Generation", f"{c.name.generation}"),
@@ -559,13 +560,14 @@ class CreatureDetailPanel:
         output_ids = sorted([n for n in order if nodes[n].node_type == NodeType.OUTPUT])
         hidden_ids = [n for n in order if nodes[n].node_type == NodeType.HIDDEN]
 
-        # Group inputs into 5 labelled bands (matches 55-input layout)
+        # Group inputs into 5 labelled bands (matches 58-input layout)
+        # Creatures block grew from 3×5=15 to 3×6=18 with the signal input.
         input_groups = [
             ("Rays",      input_ids[:24]),
             ("Food",      input_ids[24:33]),
-            ("Creatures", input_ids[33:48]),
-            ("Hunger",    input_ids[48:50]),
-            ("Self",      input_ids[50:55]),
+            ("Creatures", input_ids[33:51]),
+            ("Hunger",    input_ids[51:53]),
+            ("Self",      input_ids[53:58]),
         ]
 
         # Positions: inputs left column, hidden middle, outputs right column
@@ -589,7 +591,7 @@ class CreatureDetailPanel:
         hidden_y = ys(hidden_ids, h)
         output_y = ys(output_ids, h)
 
-        output_labels = ["Thrust", "Turn", "Eat", "Reproduce", "Attack", "Flee"]
+        output_labels = ["Thrust", "Turn", "Eat", "Reproduce", "Attack", "Flee", "Signal"]
 
         # Build a lookup: node_id -> (x, y) for connection drawing
         node_xy: Dict[int, Tuple[float, float]] = {}

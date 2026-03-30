@@ -85,6 +85,11 @@ class SimulationLoop:
             sensor = build_sensor_vector(creature, self.world, self.population, self.cfg)
             action = creature.think(sensor)
 
+            # Extract broadcast signal (output 6); map tanh [-1,1] → [0,1]
+            # Graceful fallback for genomes with only 6 outputs (old saves).
+            raw_sig = float(action[6]) if len(action) > 6 else 0.0
+            creature.signal = (raw_sig + 1.0) * 0.5   # [-1,1] → [0,1]
+
             # 4. Physics — check flee override before integrating
             beh = creature.genome.behavior
             if action[5] > beh.flee_threshold:

@@ -132,6 +132,10 @@ class Renderer:
             if sx < -cr * 3 or sx > sw + cr * 3 or sy < -cr * 3 or sy > sh + cr * 3:
                 continue
 
+            # Signal aura (drawn under body so body sits on top)
+            if self.cfg.show_signals:
+                self._draw_signal_aura(creature, sx, sy, cr)
+
             # Trail
             if self.cfg.show_trails and len(creature._trail) > 1:
                 self._draw_trail(creature, cr)
@@ -250,6 +254,32 @@ class Renderer:
             tail_sx, tail_sy = to_screen(-tl, 0.0)
             repro_col = (80, 140, 255) if beh.sexual_bias > 0.5 else (255, 220, 50)
             pygame.draw.circle(self.screen, repro_col, (tail_sx, tail_sy), max(2, cr // 5))
+
+    def _draw_signal_aura(self, creature: "Creature", sx: int, sy: int, cr: int) -> None:
+        """Draw a glowing ring whose size reflects the creature's broadcast signal."""
+        sig = creature.signal
+        if sig < 0.04:
+            return
+
+        # Outer ring radius: slightly bigger than body at minimum, grows with signal
+        ring_r = max(cr + 3, int(cr * (1.0 + sig * 3.5)))
+        # Warm gold colour — evolution doesn't assign meaning, we just make it visible
+        color = (255, 200, 55)
+
+        # Two concentric rings: inner brighter, outer faint
+        for offset, width, alpha_scale in ((0, 2, 1.0), (4, 1, 0.4)):
+            r = ring_r + offset
+            alpha = int(sig * 200 * alpha_scale)
+            if alpha < 5:
+                continue
+            surf_size = r * 2 + 4
+            aura = pygame.Surface((surf_size, surf_size), pygame.SRCALPHA)
+            pygame.draw.circle(
+                aura, (*color, alpha),
+                (surf_size // 2, surf_size // 2),
+                r, width,
+            )
+            self.screen.blit(aura, (sx - surf_size // 2, sy - surf_size // 2))
 
     def _draw_trail(self, creature: "Creature", cr: int) -> None:
         trail = creature._trail
