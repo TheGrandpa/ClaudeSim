@@ -462,9 +462,12 @@ class CreatureDetailPanel:
         rec = self._tree_records.get(c.id)
 
         age_str = f"{c.years}y {c.age % 5000} ticks" if c.years > 0 else f"{c.age} ticks"
+        beh = c.genome.behavior
+        stamina_frac = c.stamina / max(beh.stamina_capacity, 1.0)
         stats = [
             ("Age",        age_str),
             ("Energy",     f"{c.energy:.1f} / {c.max_energy:.0f}"),
+            ("Stamina",    f"{c.stamina:.0f} / {beh.stamina_capacity:.0f}  ({stamina_frac:.0%})"),
             ("Signal",     f"{c.signal:.2f}"),
             ("Speed",      f"{math.sqrt(float(c.vel[0]**2+c.vel[1]**2)):.2f}"),
             ("Species",    f"#{c.species_id}"),
@@ -499,7 +502,7 @@ class CreatureDetailPanel:
         y += 4
         self._text(surface, "── BEHAVIOR ──", ox + 8, y, self._f_small, DIVIDER)
         y += row_h
-        beh = c.genome.behavior
+        # beh already set above in stats block
         # Friendly diet/repro labels
         cb = beh.carnivore_bias
         if cb < 0.25:
@@ -521,6 +524,7 @@ class CreatureDetailPanel:
             ("Diet",     f"{diet_label} ({cb:.2f})"),
             ("Repro",    repro_label),
             ("Size",     f"{beh.size:.2f}  (max E {c.max_energy:.0f})"),
+            ("Stamina",  f"cap {beh.stamina_capacity:.0f}  rec {beh.stamina_recovery:.2f}/t"),
             ("Ray len",  f"{beh.ray_length:.0f}"),
             ("Eat thr",  f"{beh.eat_threshold:.2f}"),
             ("Atk thr",  f"{beh.attack_threshold:.2f}"),
@@ -560,14 +564,14 @@ class CreatureDetailPanel:
         output_ids = sorted([n for n in order if nodes[n].node_type == NodeType.OUTPUT])
         hidden_ids = [n for n in order if nodes[n].node_type == NodeType.HIDDEN]
 
-        # Group inputs into 5 labelled bands (matches 58-input layout)
-        # Creatures block grew from 3×5=15 to 3×6=18 with the signal input.
+        # Group inputs into 6 labelled bands (matches 59-input layout)
         input_groups = [
             ("Rays",      input_ids[:24]),
             ("Food",      input_ids[24:33]),
             ("Creatures", input_ids[33:51]),
             ("Hunger",    input_ids[51:53]),
             ("Self",      input_ids[53:58]),
+            ("Stamina",   input_ids[58:59]),
         ]
 
         # Positions: inputs left column, hidden middle, outputs right column

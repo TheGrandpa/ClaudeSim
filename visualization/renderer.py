@@ -255,6 +255,22 @@ class Renderer:
             repro_col = (80, 140, 255) if beh.sexual_bias > 0.5 else (255, 220, 50)
             pygame.draw.circle(self.screen, repro_col, (tail_sx, tail_sy), max(2, cr // 5))
 
+        # ── Stamina bar (below body, always drawn when visible) ───────────────
+        if cr >= 6:
+            beh = creature.genome.behavior
+            frac = creature.stamina / max(beh.stamina_capacity, 1.0)
+            bar_w = int(cr * 1.8)
+            bar_h = max(2, cr // 6)
+            bar_x = sx - bar_w // 2
+            bar_y = sy + cr + 3
+            # Background track
+            pygame.draw.rect(self.screen, (25, 28, 38), (bar_x, bar_y, bar_w, bar_h))
+            # Fill — cyan when healthy, orange when low
+            if frac > 0.01:
+                fill_w = max(1, int(bar_w * frac))
+                fill_col = (50, 210, 210) if frac > 0.3 else (220, 120, 40)
+                pygame.draw.rect(self.screen, fill_col, (bar_x, bar_y, fill_w, bar_h))
+
     def _draw_signal_aura(self, creature: "Creature", sx: int, sy: int, cr: int) -> None:
         """Draw a glowing ring whose size reflects the creature's broadcast signal."""
         sig = creature.signal

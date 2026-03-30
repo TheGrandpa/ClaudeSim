@@ -61,7 +61,7 @@ class Creature:
     __slots__ = (
         "id", "name", "pos", "vel", "angle",
         "energy", "age", "years", "genome", "brain",
-        "last_action", "signal", "color", "parent_ids", "species_id",
+        "last_action", "signal", "stamina", "color", "parent_ids", "species_id",
         "_trail", "_food_eaten", "_species_interactions",
     )
 
@@ -84,7 +84,9 @@ class Creature:
         self.genome = genome
         self.brain = NeuralNetwork(genome)
         self.last_action = np.zeros(7, dtype=np.float32)
-        self.signal: float = 0.0   # current broadcast signal [0, 1], output node 6
+        self.signal:  float = 0.0   # current broadcast signal [0, 1], output node 6
+        # Stamina starts full; drains during sprinting, recovers at rest
+        self.stamina: float = genome.behavior.stamina_capacity
         self.color: Tuple[int, int, int] = genome.appearance.primary_rgb()
         self.parent_ids = parent_ids
         self.species_id: int = 0

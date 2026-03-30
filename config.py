@@ -47,8 +47,12 @@ class SimConfig:
     max_turn_rate: float = 0.15             # radians per tick
     velocity_damping: float = 0.85
 
+    # Stamina physics
+    stamina_sprint_drain: float = 0.8   # stamina drained per tick at thrust=1 (scales with size)
+    stamina_speed_floor:  float = 0.15  # minimum speed fraction when fully exhausted
+
     # ── NEAT ──────────────────────────────────────────────────────────────────
-    neat_input_size: int = 58   # 24 rays + 9 food + 18 creatures(×6) + 2 hunger-dir + 5 self
+    neat_input_size: int = 59   # 24 rays + 9 food + 18 creatures(×6) + 2 hunger-dir + 5 self + 1 stamina
     neat_output_size: int = 7   # thrust, turn, eat, reproduce, attack, flee, signal
     weight_init_range: float = 2.0
     weight_perturb_rate: float = 0.8        # probability each weight is perturbed

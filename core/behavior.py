@@ -54,6 +54,14 @@ class BehaviorGene:
     # damage resistance, and visual size.
     size:                 float = 1.0
 
+    # Stamina pool — how much burst energy the creature can sustain.
+    # stamina_capacity : total pool size (50–300); larger = longer sprints
+    # stamina_recovery : pool units recovered per tick at full rest (0.05–2.0)
+    #   Higher recovery → quicker bounce-back but evolution can't easily get both
+    #   large capacity AND fast recovery without paying for it elsewhere.
+    stamina_capacity:     float = 150.0
+    stamina_recovery:     float = 0.5
+
     # ── Serialization ─────────────────────────────────────────────────────────
 
     def to_dict(self) -> dict:
@@ -67,6 +75,8 @@ class BehaviorGene:
             "sexual_bias":         self.sexual_bias,
             "carnivore_bias":      self.carnivore_bias,
             "size":                self.size,
+            "stamina_capacity":    self.stamina_capacity,
+            "stamina_recovery":    self.stamina_recovery,
         }
 
     @classmethod
@@ -81,6 +91,8 @@ class BehaviorGene:
             sexual_bias         = d.get("sexual_bias",          0.8),
             carnivore_bias      = d.get("carnivore_bias",       0.05),
             size                = d.get("size",                 1.0),
+            stamina_capacity    = d.get("stamina_capacity",    150.0),
+            stamina_recovery    = d.get("stamina_recovery",      0.5),
         )
 
     def copy(self) -> "BehaviorGene":
@@ -100,6 +112,8 @@ def random_behavior() -> BehaviorGene:
         sexual_bias         = random.uniform(0.0, 1.0),
         carnivore_bias      = random.uniform(0.0, 0.3),  # start mostly herbivorous
         size                = random.uniform(0.5, 1.5),  # start near mid-range
+        stamina_capacity    = random.uniform(60.0, 240.0),
+        stamina_recovery    = random.uniform(0.1, 1.2),
     )
 
 
@@ -120,6 +134,8 @@ def crossover_behavior(a: BehaviorGene, b: BehaviorGene) -> BehaviorGene:
         sexual_bias         = pick(a.sexual_bias,         b.sexual_bias),
         carnivore_bias      = pick(a.carnivore_bias,      b.carnivore_bias),
         size                = pick(a.size,                b.size),
+        stamina_capacity    = pick(a.stamina_capacity,   b.stamina_capacity),
+        stamina_recovery    = pick(a.stamina_recovery,   b.stamina_recovery),
     )
 
 
@@ -144,3 +160,5 @@ def mutate_behavior(beh: BehaviorGene, rate: float = 0.3) -> None:
     beh.sexual_bias         = perturb(beh.sexual_bias,          0.0,  1.0,   0.08)
     beh.carnivore_bias      = perturb(beh.carnivore_bias,       0.0,  1.0,   0.06)
     beh.size                = perturb(beh.size,                 0.3,  2.0,   0.05)
+    beh.stamina_capacity    = perturb(beh.stamina_capacity,    50.0, 300.0,  0.07)
+    beh.stamina_recovery    = perturb(beh.stamina_recovery,     0.05, 2.0,   0.07)

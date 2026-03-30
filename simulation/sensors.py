@@ -1,7 +1,7 @@
 """
-Sensors — build the 58-element input vector for a creature's neural network.
+Sensors — build the 59-element input vector for a creature's neural network.
 
-Layout (matches config.neat_input_size = 58):
+Layout (matches config.neat_input_size = 59):
 
   [0:24]   Ray sensors  — 6 rays × 4 values each
                (wall_hit, creature_hit, food_hit, normalized_distance)
@@ -23,6 +23,10 @@ Layout (matches config.neat_input_size = 58):
   [53:58]  Self state — (speed_norm, energy_norm, years_norm,
                           heading_sin, heading_cos)
                years_norm = min(years / 5, 1.0)  (saturates at 5 years)
+
+  [58]     Stamina norm — creature.stamina / stamina_capacity  ∈ [0, 1]
+               0 = fully exhausted, 1 = full stamina
+               Lets creatures sense fatigue and choose when to sprint or rest.
 """
 
 from __future__ import annotations
@@ -42,7 +46,7 @@ if TYPE_CHECKING:
 
 # ── Layout constants ──────────────────────────────────────────────────────────
 
-SENSOR_SIZE      = 58
+SENSOR_SIZE      = 59
 RAY_COUNT        = 6
 NEAREST_FOOD     = 3
 NEAREST_CREATURE = 3
@@ -52,6 +56,7 @@ FOOD_OFFSET     = 24       # 3 × 3 = 9
 CREATURE_OFFSET = 33       # 3 × 6 = 18  (added signal as 6th value)
 HUNGER_OFFSET   = 51       # 2
 SELF_OFFSET     = 53       # 5
+STAMINA_OFFSET  = 58       # 1
 
 
 def build_sensor_vector(
@@ -139,6 +144,10 @@ def build_sensor_vector(
     vec[SELF_OFFSET + 2] = min(creature.years / 5.0, 1.0)  # saturates at 5 years
     vec[SELF_OFFSET + 3] = math.sin(angle)
     vec[SELF_OFFSET + 4] = math.cos(angle)
+
+    # ── Stamina ───────────────────────────────────────────────────────────────
+    beh = creature.genome.behavior
+    vec[STAMINA_OFFSET] = creature.stamina / max(beh.stamina_capacity, 1.0)
 
     return vec
 
